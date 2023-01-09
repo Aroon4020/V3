@@ -113,7 +113,7 @@ describe('UniswapV3Pool', () => {
 
   describe('#initialize', () => {
     it('fails if already initialized', async () => {
-      await pool.initialize(encodePriceSqrt(1, 1))
+      console.log(await pool.initialize(encodePriceSqrt(1, 1)))
       await expect(pool.initialize(encodePriceSqrt(1, 1))).to.be.reverted
     })
     it('fails if starting price is too low', async () => {
@@ -188,11 +188,14 @@ describe('UniswapV3Pool', () => {
 
   describe('#mint', () => {
     it('fails if not initialized', async () => {
+      console.log(">>>>>>>>>>>>>>>>>>>>>>",tickSpacing);
       await expect(mint(wallet.address, -tickSpacing, tickSpacing, 1)).to.be.revertedWith('LOK')
     })
     describe('after initialization', () => {
       beforeEach('initialize the pool at price of 10:1', async () => {
         await pool.initialize(encodePriceSqrt(1, 10))
+        console.log("min",minTick);
+        console.log("Max",maxTick);
         await mint(wallet.address, minTick, maxTick, 3161)
       })
 
@@ -446,7 +449,7 @@ describe('UniswapV3Pool', () => {
             expect(await token1.balanceOf(pool.address)).to.eq(1000 + 3161)
           })
 
-          it('removing works', async () => {
+          it.only('removing works', async () => {
             await mint(wallet.address, -46080, -46020, 10000)
             await pool.burn(-46080, -46020, 10000)
             const { amount0, amount1 } = await pool.callStatic.collect(

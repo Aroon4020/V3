@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.7.6;
-
+import "hardhat/console.sol";
 import '../interfaces/IERC20Minimal.sol';
 
 import '../libraries/SafeCast.sol';
@@ -108,8 +108,12 @@ contract TestUniswapV3Callee is IUniswapV3MintCallback, IUniswapV3SwapCallback, 
         address sender = abi.decode(data, (address));
 
         emit MintCallback(amount0Owed, amount1Owed);
-        if (amount0Owed > 0)
+        if (amount0Owed > 0){
+            console.log("yyyy");
             IERC20Minimal(IUniswapV3Pool(msg.sender).token0()).transferFrom(sender, msg.sender, amount0Owed);
+            
+        }
+            
         if (amount1Owed > 0)
             IERC20Minimal(IUniswapV3Pool(msg.sender).token1()).transferFrom(sender, msg.sender, amount1Owed);
     }

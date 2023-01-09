@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity =0.7.6;
-
+import 'hardhat/console.sol';
 import './interfaces/IUniswapV3Pool.sol';
 
 import './NoDelegateCall.sol';
@@ -53,6 +53,8 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
     /// @inheritdoc IUniswapV3PoolImmutables
     uint128 public immutable override maxLiquidityPerTick;
 
+
+    /// All transaction pool parameters and states are recorded by a data structure Slot0:
     struct Slot0 {
         // the current price
         uint160 sqrtPriceX96;
@@ -138,10 +140,12 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
     /// @dev This function is gas optimized to avoid a redundant extcodesize check in addition to the returndatasize
     /// check
     function balance0() private view returns (uint256) {
+        //console.log("ffff");
         (bool success, bytes memory data) = token0.staticcall(
             abi.encodeWithSelector(IERC20Minimal.balanceOf.selector, address(this))
         );
-        require(success && data.length >= 32);
+        //console.log("a");
+        require(success && data.length >= 32,"a");
         return abi.decode(data, (uint256));
     }
 
@@ -156,6 +160,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
         return abi.decode(data, (uint256));
     }
 
+    /// ????????
     /// @inheritdoc IUniswapV3PoolDerivedState
     function snapshotCumulativesInside(int24 tickLower, int24 tickUpper)
         external
@@ -271,11 +276,14 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
 
     /// @inheritdoc IUniswapV3PoolActions
     /// @dev not locked because it initializes unlocked
+    /// Each transaction pool initializes the parameters and states
     function initialize(uint160 sqrtPriceX96) external override {
         require(slot0.sqrtPriceX96 == 0, 'AI');
 
         int24 tick = TickMath.getTickAtSqrtRatio(sqrtPriceX96);
-
+        //console.logInt(tick);
+        //console.log("tick");
+        //console.log(sqrtPriceX96);
         (uint16 cardinality, uint16 cardinalityNext) = observations.initialize(_blockTimestamp());
 
         slot0 = Slot0({
@@ -306,6 +314,9 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
     /// @return position a storage pointer referencing the position with the given owner and tick range
     /// @return amount0 the amount of token0 owed to the pool, negative if the pool should pay the recipient
     /// @return amount1 the amount of token1 owed to the pool, negative if the pool should pay the recipient
+
+    /// updating Tick information,
+    /// calculate the corresponding money value of liquidity based on current price
     function _modifyPosition(ModifyPositionParams memory params)
         private
         noDelegateCall
@@ -314,7 +325,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
             int256 amount0,
             int256 amount1
         )
-    {
+    {   
         checkTicks(params.tickLower, params.tickUpper);
 
         Slot0 memory _slot0 = slot0; // SLOAD for gas optimization
@@ -379,6 +390,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
     /// @param tickLower the lower tick of the position's tick range
     /// @param tickUpper the upper tick of the position's tick range
     /// @param tick the current tick, passed to avoid sloads
+    /// _updatePosition mainly updates the corresponding boundary Tick info for Position:
     function _updatePosition(
         address owner,
         int24 tickLower,
@@ -477,6 +489,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
                 liquidityDelta: int256(amount).toInt128()
             })
         );
+        
 
         amount0 = uint256(amount0Int);
         amount1 = uint256(amount1Int);
@@ -485,7 +498,11 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
         uint256 balance1Before;
         if (amount0 > 0) balance0Before = balance0();
         if (amount1 > 0) balance1Before = balance1();
-        IUniswapV3MintCallback(msg.sender).uniswapV3MintCallback(amount0, amount1, data);
+        //console.log("Before Tranfer");
+        //console.logBytes(data);
+        //console.log(msg.sender);
+        IUniswapV3MintCallback(msg.sender).uniswapV3MintCallback(amount0, amount1,data);
+       //console.log("A");
         if (amount0 > 0) require(balance0Before.add(amount0) <= balance0(), 'M0');
         if (amount1 > 0) require(balance1Before.add(amount1) <= balance1(), 'M1');
 
@@ -520,6 +537,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
 
     /// @inheritdoc IUniswapV3PoolActions
     /// @dev noDelegateCall is applied indirectly via _modifyPosition
+    /// remove liquidity
     function burn(
         int24 tickLower,
         int24 tickUpper,
@@ -542,6 +560,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
                 position.tokensOwed0 + uint128(amount0),
                 position.tokensOwed1 + uint128(amount1)
             );
+            console.log("1234");
         }
 
         emit Burn(msg.sender, tickLower, tickUpper, amount, amount0, amount1);

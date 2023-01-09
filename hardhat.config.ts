@@ -48,11 +48,12 @@ export default {
     apiKey: process.env.ETHERSCAN_API_KEY,
   },
   solidity: {
+
     version: '0.7.6',
     settings: {
       optimizer: {
         enabled: true,
-        runs: 800,
+        runs: 200,
       },
       metadata: {
         // do not include the metadata hash, since this is machine dependent

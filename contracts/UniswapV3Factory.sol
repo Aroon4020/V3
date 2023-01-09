@@ -7,6 +7,7 @@ import './UniswapV3PoolDeployer.sol';
 import './NoDelegateCall.sol';
 
 import './UniswapV3Pool.sol';
+//import "hardhat/console.sol";
 
 /// @title Canonical Uniswap V3 factory
 /// @notice Deploys Uniswap V3 pools and manages ownership and control over pool protocol fees
@@ -23,12 +24,14 @@ contract UniswapV3Factory is IUniswapV3Factory, UniswapV3PoolDeployer, NoDelegat
         owner = msg.sender;
         emit OwnerChanged(address(0), msg.sender);
 
-        feeAmountTickSpacing[500] = 10;
+        //tick spacing: sqrt(1.0001)**x whr x is tick space
+        //so sqrt price at tick 0 is sqrt(1.0001)**0
+        feeAmountTickSpacing[500] = 10; //the tickspacing for 0.05% fee pair is 10
         emit FeeAmountEnabled(500, 10);
-        feeAmountTickSpacing[3000] = 60;
+        feeAmountTickSpacing[3000] = 60; //the tickspacing for 0.3% fee pair is 60
         emit FeeAmountEnabled(3000, 60);
-        feeAmountTickSpacing[10000] = 200;
-        emit FeeAmountEnabled(10000, 200);
+        feeAmountTickSpacing[10000] = 200; //the tickspacing for 1% fee pair is 200
+        emit FeeAmountEnabled(10000, 200); 
     }
 
     /// @inheritdoc IUniswapV3Factory
@@ -44,6 +47,7 @@ contract UniswapV3Factory is IUniswapV3Factory, UniswapV3PoolDeployer, NoDelegat
         require(tickSpacing != 0);
         require(getPool[token0][token1][fee] == address(0));
         pool = deploy(address(this), token0, token1, fee, tickSpacing);
+        //console.log(pool);
         getPool[token0][token1][fee] = pool;
         // populate mapping in the reverse direction, deliberate choice to avoid the cost of comparing addresses
         getPool[token1][token0][fee] = pool;

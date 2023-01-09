@@ -1,6 +1,6 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
-
+import "hardhat/console.sol";
 import '../../../../../contracts/test/TestERC20.sol';
 import '../../../../../contracts/UniswapV3Pool.sol';
 import '../../../../../contracts/UniswapV3Factory.sol';
@@ -103,7 +103,11 @@ contract UniswapMinter {
         uint256 amount1Owed,
         bytes calldata data
     ) external {
-        if (amount0Owed > 0) token0.transfer(address(pool), amount0Owed);
+        console.log("VFDE");
+        if (amount0Owed > 0)
+        {   console.log("Ggg");
+           token0.transfer(address(pool), amount0Owed); 
+        } token0.transfer(address(pool), amount0Owed);
         if (amount1Owed > 0) token1.transfer(address(pool), amount1Owed);
     }
 
