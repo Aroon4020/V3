@@ -490,7 +490,8 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
             })
         );
         
-
+        console.log(amount0);
+        console.log(amount1);
         amount0 = uint256(amount0Int);
         amount1 = uint256(amount1Int);
 
@@ -502,7 +503,10 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
         //console.logBytes(data);
         //console.log(msg.sender);
         IUniswapV3MintCallback(msg.sender).uniswapV3MintCallback(amount0, amount1,data);
-       //console.log("A");
+        console.log(balance1Before.add(amount1));
+        console.log(balance1());
+        console.log(balance1Before.add(amount0));
+        console.log(balance0());
         if (amount0 > 0) require(balance0Before.add(amount0) <= balance0(), 'M0');
         if (amount1 > 0) require(balance1Before.add(amount1) <= balance1(), 'M1');
 
@@ -543,27 +547,27 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
         int24 tickUpper,
         uint128 amount
     ) external override lock returns (uint256 amount0, uint256 amount1) {
-        (Position.Info storage position, int256 amount0Int, int256 amount1Int) = _modifyPosition(
-            ModifyPositionParams({
-                owner: msg.sender,
-                tickLower: tickLower,
-                tickUpper: tickUpper,
-                liquidityDelta: -int256(amount).toInt128()
-            })
-        );
+        // (Position.Info storage position, int256 amount0Int, int256 amount1Int) = _modifyPosition(
+        //     ModifyPositionParams({
+        //         owner: msg.sender,
+        //         tickLower: tickLower,
+        //         tickUpper: tickUpper,
+        //         liquidityDelta: -int256(amount).toInt128()
+        //     })
+        // );
 
-        amount0 = uint256(-amount0Int);
-        amount1 = uint256(-amount1Int);
+        // amount0 = uint256(-amount0Int);
+        // amount1 = uint256(-amount1Int);
 
-        if (amount0 > 0 || amount1 > 0) {
-            (position.tokensOwed0, position.tokensOwed1) = (
-                position.tokensOwed0 + uint128(amount0),
-                position.tokensOwed1 + uint128(amount1)
-            );
-            console.log("1234");
-        }
+        // if (amount0 > 0 || amount1 > 0) {
+        //     (position.tokensOwed0, position.tokensOwed1) = (
+        //         position.tokensOwed0 + uint128(amount0),
+        //         position.tokensOwed1 + uint128(amount1)
+        //     );
+        //     console.log("1234");
+        // }
 
-        emit Burn(msg.sender, tickLower, tickUpper, amount, amount0, amount1);
+        // emit Burn(msg.sender, tickLower, tickUpper, amount, amount0, amount1);
     }
 
     struct SwapCache {
