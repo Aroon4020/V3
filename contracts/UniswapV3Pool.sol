@@ -140,11 +140,11 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
     /// @dev This function is gas optimized to avoid a redundant extcodesize check in addition to the returndatasize
     /// check
     function balance0() private view returns (uint256) {
-        //console.log("ffff");
+       
         (bool success, bytes memory data) = token0.staticcall(
             abi.encodeWithSelector(IERC20Minimal.balanceOf.selector, address(this))
         );
-        //console.log("a");
+        
         require(success && data.length >= 32,"a");
         return abi.decode(data, (uint256));
     }
@@ -281,9 +281,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
         require(slot0.sqrtPriceX96 == 0, 'AI');
 
         int24 tick = TickMath.getTickAtSqrtRatio(sqrtPriceX96);
-        //console.logInt(tick);
-        //console.log("tick");
-        //console.log(sqrtPriceX96);
+        
         (uint16 cardinality, uint16 cardinalityNext) = observations.initialize(_blockTimestamp());
 
         slot0 = Slot0({
@@ -490,23 +488,13 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
             })
         );
         
-        console.log(amount0);
-        console.log(amount1);
         amount0 = uint256(amount0Int);
         amount1 = uint256(amount1Int);
-
         uint256 balance0Before;
         uint256 balance1Before;
         if (amount0 > 0) balance0Before = balance0();
         if (amount1 > 0) balance1Before = balance1();
-        //console.log("Before Tranfer");
-        //console.logBytes(data);
-        //console.log(msg.sender);
         IUniswapV3MintCallback(msg.sender).uniswapV3MintCallback(amount0, amount1,data);
-        console.log(balance1Before.add(amount1));
-        console.log(balance1());
-        console.log(balance1Before.add(amount0));
-        console.log(balance0());
         if (amount0 > 0) require(balance0Before.add(amount0) <= balance0(), 'M0');
         if (amount1 > 0) require(balance1Before.add(amount1) <= balance1(), 'M1');
 
@@ -526,8 +514,9 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
 
         amount0 = amount0Requested > position.tokensOwed0 ? position.tokensOwed0 : amount0Requested;
         amount1 = amount1Requested > position.tokensOwed1 ? position.tokensOwed1 : amount1Requested;
-
+        
         if (amount0 > 0) {
+            
             position.tokensOwed0 -= amount0;
             TransferHelper.safeTransfer(token0, recipient, amount0);
         }
@@ -547,27 +536,28 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
         int24 tickUpper,
         uint128 amount
     ) external override lock returns (uint256 amount0, uint256 amount1) {
-        // (Position.Info storage position, int256 amount0Int, int256 amount1Int) = _modifyPosition(
-        //     ModifyPositionParams({
-        //         owner: msg.sender,
-        //         tickLower: tickLower,
-        //         tickUpper: tickUpper,
-        //         liquidityDelta: -int256(amount).toInt128()
-        //     })
-        // );
+        (Position.Info storage position, int256 amount0Int, int256 amount1Int) = _modifyPosition(
+            ModifyPositionParams({
+                owner: msg.sender,
+                tickLower: tickLower,
+                tickUpper: tickUpper,
+                liquidityDelta: -int256(amount).toInt128()
+            })
+        );
 
-        // amount0 = uint256(-amount0Int);
-        // amount1 = uint256(-amount1Int);
+        amount0 = uint256(-amount0Int);
+        amount1 = uint256(-amount1Int);
 
-        // if (amount0 > 0 || amount1 > 0) {
-        //     (position.tokensOwed0, position.tokensOwed1) = (
-        //         position.tokensOwed0 + uint128(amount0),
-        //         position.tokensOwed1 + uint128(amount1)
-        //     );
-        //     console.log("1234");
-        // }
+        if (amount0 > 0 || amount1 > 0) {
 
-        // emit Burn(msg.sender, tickLower, tickUpper, amount, amount0, amount1);
+            (position.tokensOwed0, position.tokensOwed1) = (
+                position.tokensOwed0 + uint128(amount0),
+                position.tokensOwed1 + uint128(amount1)
+            );
+            
+        }
+
+        emit Burn(msg.sender, tickLower, tickUpper, amount, amount0, amount1);
     }
 
     struct SwapCache {
@@ -818,43 +808,43 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
         uint256 amount1,
         bytes calldata data
     ) external override lock noDelegateCall {
-        uint128 _liquidity = liquidity;
-        require(_liquidity > 0, 'L');
+        // uint128 _liquidity = liquidity;
+        // require(_liquidity > 0, 'L');
 
-        uint256 fee0 = FullMath.mulDivRoundingUp(amount0, fee, 1e6);
-        uint256 fee1 = FullMath.mulDivRoundingUp(amount1, fee, 1e6);
-        uint256 balance0Before = balance0();
-        uint256 balance1Before = balance1();
+        // uint256 fee0 = FullMath.mulDivRoundingUp(amount0, fee, 1e6);
+        // uint256 fee1 = FullMath.mulDivRoundingUp(amount1, fee, 1e6);
+        // uint256 balance0Before = balance0();
+        // uint256 balance1Before = balance1();
 
-        if (amount0 > 0) TransferHelper.safeTransfer(token0, recipient, amount0);
-        if (amount1 > 0) TransferHelper.safeTransfer(token1, recipient, amount1);
+        // if (amount0 > 0) TransferHelper.safeTransfer(token0, recipient, amount0);
+        // if (amount1 > 0) TransferHelper.safeTransfer(token1, recipient, amount1);
 
-        IUniswapV3FlashCallback(msg.sender).uniswapV3FlashCallback(fee0, fee1, data);
+        // IUniswapV3FlashCallback(msg.sender).uniswapV3FlashCallback(fee0, fee1, data);
 
-        uint256 balance0After = balance0();
-        uint256 balance1After = balance1();
+        // uint256 balance0After = balance0();
+        // uint256 balance1After = balance1();
 
-        require(balance0Before.add(fee0) <= balance0After, 'F0');
-        require(balance1Before.add(fee1) <= balance1After, 'F1');
+        // require(balance0Before.add(fee0) <= balance0After, 'F0');
+        // require(balance1Before.add(fee1) <= balance1After, 'F1');
 
-        // sub is safe because we know balanceAfter is gt balanceBefore by at least fee
-        uint256 paid0 = balance0After - balance0Before;
-        uint256 paid1 = balance1After - balance1Before;
+        // // sub is safe because we know balanceAfter is gt balanceBefore by at least fee
+        // uint256 paid0 = balance0After - balance0Before;
+        // uint256 paid1 = balance1After - balance1Before;
 
-        if (paid0 > 0) {
-            uint8 feeProtocol0 = slot0.feeProtocol % 16;
-            uint256 fees0 = feeProtocol0 == 0 ? 0 : paid0 / feeProtocol0;
-            if (uint128(fees0) > 0) protocolFees.token0 += uint128(fees0);
-            feeGrowthGlobal0X128 += FullMath.mulDiv(paid0 - fees0, FixedPoint128.Q128, _liquidity);
-        }
-        if (paid1 > 0) {
-            uint8 feeProtocol1 = slot0.feeProtocol >> 4;
-            uint256 fees1 = feeProtocol1 == 0 ? 0 : paid1 / feeProtocol1;
-            if (uint128(fees1) > 0) protocolFees.token1 += uint128(fees1);
-            feeGrowthGlobal1X128 += FullMath.mulDiv(paid1 - fees1, FixedPoint128.Q128, _liquidity);
-        }
+        // if (paid0 > 0) {
+        //     uint8 feeProtocol0 = slot0.feeProtocol % 16;
+        //     uint256 fees0 = feeProtocol0 == 0 ? 0 : paid0 / feeProtocol0;
+        //     if (uint128(fees0) > 0) protocolFees.token0 += uint128(fees0);
+        //     feeGrowthGlobal0X128 += FullMath.mulDiv(paid0 - fees0, FixedPoint128.Q128, _liquidity);
+        // }
+        // if (paid1 > 0) {
+        //     uint8 feeProtocol1 = slot0.feeProtocol >> 4;
+        //     uint256 fees1 = feeProtocol1 == 0 ? 0 : paid1 / feeProtocol1;
+        //     if (uint128(fees1) > 0) protocolFees.token1 += uint128(fees1);
+        //     feeGrowthGlobal1X128 += FullMath.mulDiv(paid1 - fees1, FixedPoint128.Q128, _liquidity);
+        // }
 
-        emit Flash(msg.sender, recipient, amount0, amount1, paid0, paid1);
+        // emit Flash(msg.sender, recipient, amount0, amount1, paid0, paid1);
     }
 
     /// @inheritdoc IUniswapV3PoolOwnerActions

@@ -106,10 +106,10 @@ contract TestUniswapV3Callee is IUniswapV3MintCallback, IUniswapV3SwapCallback, 
         bytes calldata data
     ) external override {
         address sender = abi.decode(data, (address));
-
+        
         emit MintCallback(amount0Owed, amount1Owed);
         if (amount0Owed > 0){
-            console.log("yyyy");
+            
             IERC20Minimal(IUniswapV3Pool(msg.sender).token0()).transferFrom(sender, msg.sender, amount0Owed);
             
         }

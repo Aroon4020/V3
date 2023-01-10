@@ -247,7 +247,6 @@ describe("Local contract test", function() {
     const token1 = await ERC201.deploy("token1","t1"); 
     const V3fact = await ethers.getContractFactory("UniswapV3Factory");
     const d = await V3fact.deploy();
-    //await d.createPool(token0.address,token1.address,500);
     const fact = await  ethers.getContractFactory("V3");
     const v3 = await fact.deploy(d.address);
     const tx = await v3.createPair(token0.address,token1.address,500);
@@ -256,14 +255,12 @@ describe("Local contract test", function() {
     await token1._mint(a.address,parseEther("10000"));
     await token0.approve(v3.address,parseEther("10000"));
     await token1.approve(v3.address,parseEther("10000"));
-    console.log(encodePriceSqrt(10, 1));
-    await v3.init(pool,encodePriceSqrt(5000, 1));
-
-    await v3.addLiquidity(pool,a.address,-46080, -46020, 10000,a.address);
-
-    // console.log(token0);
-    
-  
+    await v3.init(pool,encodePriceSqrt(parseEther("10"), parseEther("10")));
+    await v3.addLiquidity(pool,-1000, 1000, parseEther("10"),parseEther("10"));
+    await v3.swap(pool,true,parseEther("0.00001"));
+    await v3.swap(pool,false,parseEther("0.0001"));
+    await v3.burnLiquidity(pool,-1000,1000,parseEther("10"),parseEther("10"));
+    //await v3.collect(pool,1000,-1000,parseEther("1"),parseEther("10"))
   });
   
 })

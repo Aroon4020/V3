@@ -449,7 +449,7 @@ describe('UniswapV3Pool', () => {
             expect(await token1.balanceOf(pool.address)).to.eq(1000 + 3161)
           })
 
-          it.only('removing works', async () => {
+          it('removing works', async () => {
             await mint(wallet.address, -46080, -46020, 10000)
             await pool.burn(-46080, -46020, 10000)
             const { amount0, amount1 } = await pool.callStatic.collect(
